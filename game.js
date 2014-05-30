@@ -50,6 +50,27 @@ var Player = enchant.Class.create(enchant.Sprite, {
 	}
 });
 
+var Coin = enchant.Class.create(enchant.Sprite,{
+	initialize: function(x,y){
+		enchant.Sprite.call(this, 32, 32);
+		this.x = x;
+		this.y = y;
+		this.image = core.assets['piece.png'];
+		this.tick = 0;
+		//アニメーションパターン
+		this.anime = [8,9,10,11];
+		//アニメーション表示する処理
+		this.addEventListener('enterframe', function(){
+			if(this.tick <= 8){
+				this.frame = this.tick;
+			} else{
+				this.frame = this.anime[this.tick % 4];
+			}
+			this.tick++;
+		});
+	}
+});
+
 window.onload = function(){
 	
 	//ゲームオブジェクトの生成
@@ -59,10 +80,17 @@ window.onload = function(){
 	
 	//fpsを設定する
 	core.fps = 16;
+	//scoreを保持するPropertiesの作成
+	core.score = 0;
+	//timeの保持するPropertiesの追加
+	core.time = 0;
+	//Lifeの値を保持するPropertiesの追加
+	core.life = 3;
 	
 	//ゲームで使用する画像ファイルを指定する
 	core.preload('betty.png', 'flowers.png');
 	core.preload('map1.png');
+	core.preload('piece.png');
 	//ゲームで使用するmp3サウンドファイルを指定する
 	core.preload('one_0.mp3');
 	
@@ -264,10 +292,57 @@ backgroundMap.collisionData = [
 		];
 		
 		scene.addChild(backgroundMap);
+		
+		//コインを追加
+		var coins =[];
+		for(var i = 0; i<10; i++){
+			var coin = new Coin(128, 80+ 16*i);
+			scene.addChild(coin);
+			coins[i] = coin;
+		}
+		
 		var player = new Player(0, py, backgroundMap);
 		scene.addChild(player);
+		
+		
+		//スコアをフォントで表示するラベルを作成する
+		//引数はラベルの表示位置のX,Y座標
+		var scoreLabel = new ScoreLabel(16, 0);
+		scoreLabel.score = core.score;
+		scene.addChild(scoreLabel);
+		
+		//timeLabelの作成
+		var timeLabel = new TimeLabel(16, 304);
+		timeLabel.time = core.time;
+		scene.addChild(timeLabel);
+		
+		var trap = new Sprite(16, 16);
+		trap.image = core.assets['map1.png'];
+		trap.frame = 43;
+		trap.x = 136;
+		trap.y = 152;
+		scene.addChild(trap);
+		
+		var lifeLabel = new LifeLabel(180, 0, core.life);
+		scene.addChild(lifeLabel);
+		
+		//「enterframe」のイベントリスナ
 		scene.addEventListener('enterframe', function(e){
 			if(player.x < -20) core.popScene();
+			//プレイヤーとコインの当たり判定
+			for(var i in coins){
+				if(player.within(coins[i],16)){
+					core.score = scoreLabel.score += 100;
+					scene.removeChild(coins[i]);
+					delete coins[i];
+				}
+			}
+			core.time = timeLabel.time;
+			//trapとの当たり判定
+			if(player.within(trap,30)){
+				lifeLabel.life = --core.life;
+				if(core.life==0) core.life = 3;
+			}
 		});
 		
 		return scene;
