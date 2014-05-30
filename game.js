@@ -71,6 +71,18 @@ var Coin = enchant.Class.create(enchant.Sprite,{
 	}
 });
 
+var Trap = enchant.Class.create(enchant.Sprite,{
+	initialize: function(x, y){
+		enchant.Sprite.call(this, 16, 16);
+		this.x = x;
+		this.y = y;
+		this.image = core.assets['map1.png'];
+		this.frame = 43;
+		
+	}
+});
+
+
 window.onload = function(){
 	
 	//ゲームオブジェクトの生成
@@ -91,6 +103,7 @@ window.onload = function(){
 	core.preload('betty.png', 'flowers.png');
 	core.preload('map1.png');
 	core.preload('piece.png');
+	core.preload('pad.png');
 	//ゲームで使用するmp3サウンドファイルを指定する
 	core.preload('one_0.mp3');
 	
@@ -209,6 +222,13 @@ backgroundMap.collisionData = [
 		core.rootScene.addChild(infoLabel);
 		//ここまでテキストについて
 		
+		//バーチャルパッドの作成
+  	  	var pad = new Pad();
+	    pad.moveTo(0, core.rootScene.height - 100);
+	    // rootSceneにバーチャルパッドをを追加する
+	    core.rootScene.addChild(pad);
+
+		
 		//ルートシーンの「イベントフレーム」イベントが発生した時に実行するリスナ
 		core.rootScene.addEventListener('enterframe', function(e){
 			if(player.x > 300){
@@ -316,15 +336,17 @@ backgroundMap.collisionData = [
 		timeLabel.time = core.time;
 		scene.addChild(timeLabel);
 		
-		var trap = new Sprite(16, 16);
-		trap.image = core.assets['map1.png'];
-		trap.frame = 43;
-		trap.x = 136;
-		trap.y = 152;
+		var trap = new Trap(136, 152);
 		scene.addChild(trap);
 		
 		var lifeLabel = new LifeLabel(180, 0, core.life);
 		scene.addChild(lifeLabel);
+		
+		//バーチャルパッドの作成
+		var pad = new Pad();
+		pad.x = 220;
+		pad.y = 220;
+		scene.addChild(pad);
 		
 		//「enterframe」のイベントリスナ
 		scene.addEventListener('enterframe', function(e){
