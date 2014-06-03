@@ -12,6 +12,13 @@ var Player = enchant.Class.create(enchant.Sprite, {
 		this.tick = 0;
 		//プレイヤーのHPを追加
 		this.hp = 100;
+		//プレーヤーのライフ
+		this.life = 3;
+		//プレイヤーのポジション変更
+		this.setPos = function(x, y){
+			this.x = x;
+			this.y = y;
+		};
 		//「enterframe」のイベントリスナーの追加
 		//当たり判定は、点ではなく範囲で行うべき、具体的には左右の場合は左端と右端の両方、上下なら上端と下端
 		this.addEventListener('enterframe', function(e){
@@ -96,8 +103,7 @@ window.onload = function(){
 	core.score = 0;
 	//timeの保持するPropertiesの追加
 	core.time = 0;
-	//Lifeの値を保持するPropertiesの追加
-	core.life = 3;
+
 	
 	//ゲームで使用する画像ファイルを指定する
 	core.preload('betty.png', 'flowers.png');
@@ -120,7 +126,7 @@ window.onload = function(){
 		//ここからサウンドについて
 		core.bgm.volume = 0.5;
 		//BGMの再生
-		core.bgm.play();
+		//core.bgm.play();
 		//SEの再生
 		core.se.play();
 		//ここまでサウンドについて
@@ -222,18 +228,42 @@ backgroundMap.collisionData = [
 		core.rootScene.addChild(infoLabel);
 		//ここまでテキストについて
 		
+		var lifeLabel = new LifeLabel(180, 0, player.life);
+		core.rootScene.addChild(lifeLabel);
+		
+		var trap = new Trap(200, 200);
+		core.rootScene.addChild(trap);
+		
 		//バーチャルパッドの作成
-  	  	var pad = new Pad();
-	    pad.moveTo(0, core.rootScene.height - 100);
-	    // rootSceneにバーチャルパッドをを追加する
-	    core.rootScene.addChild(pad);
-
+		//
+		//
+		
 		
 		//ルートシーンの「イベントフレーム」イベントが発生した時に実行するリスナ
 		core.rootScene.addEventListener('enterframe', function(e){
 			if(player.x > 300){
 				core.pushScene(core.field(player.x, player.y));
 				player.x = 280;
+			}
+			//trapとの当たり判定
+			if(player.within(trap, 25)){
+				lifeLabel.life = --player.life;
+				if(core.input.up)   	player.y += 30;
+				if(core.input.down) 	player.y -= 30;
+				if(core.input.left) 	player.x += 30;
+				if(core.input.right)	player.x -= 30;
+				//プレイヤーの点滅表示
+				player.tl.fadeOut(2).fadeIn(4).fadeOut(2).fadeIn(4);
+				if(player.life==0){
+					player.tl.rotateBy(360, 30)
+							 .and().fadeOut(30)
+							 .and().scaleTo(0.2, 30, enchant.Easing.BOUNCE_EASEOUT);
+					
+				}
+				//デバック用
+				//if(!player.life) player.life = 3;
+				//console.log(player.life);
+				
 			}
 		});
 	
@@ -336,17 +366,16 @@ backgroundMap.collisionData = [
 		timeLabel.time = core.time;
 		scene.addChild(timeLabel);
 		
-		var trap = new Trap(136, 152);
+		var trap = new Trap(200, 200);
 		scene.addChild(trap);
 		
-		var lifeLabel = new LifeLabel(180, 0, core.life);
+		var lifeLabel = new LifeLabel(180, 0, player.life);
 		scene.addChild(lifeLabel);
 		
+		
 		//バーチャルパッドの作成
-		var pad = new Pad();
-		pad.x = 220;
-		pad.y = 220;
-		scene.addChild(pad);
+		//
+		//
 		
 		//「enterframe」のイベントリスナ
 		scene.addEventListener('enterframe', function(e){
@@ -361,11 +390,27 @@ backgroundMap.collisionData = [
 			}
 			core.time = timeLabel.time;
 			//trapとの当たり判定
-			if(player.within(trap,30)){
-				lifeLabel.life = --core.life;
-				if(core.life==0) core.life = 3;
+			if(player.within(trap, 25)){
+				lifeLabel.life = --player.life;
+				if(core.input.up)   	player.y += 30;
+				if(core.input.down) 	player.y -= 30;
+				if(core.input.left) 	player.x += 30;
+				if(core.input.right)	player.x -= 30;
+				//プレイヤーの点滅表示
+				player.tl.fadeOut(2).fadeIn(4).fadeOut(2).fadeIn(4);
+				if(player.life==0){
+					player.tl.rotateBy(360, 30)
+							 .and().fadeOut(30)
+							 .and().scaleTo(0.2, 30, enchant.Easing.BOUNCE_EASEOUT);
+					
+				}
+				//デバック用
+				//if(!player.life) player.life = 3;
+				//console.log(player.life);
+				
 			}
 		});
+		
 		
 		return scene;
 	};
