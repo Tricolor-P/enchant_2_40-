@@ -101,9 +101,16 @@ window.onload = function(){
 	core.fps = 16;
 	//scoreを保持するPropertiesの作成
 	core.score = 0;
+	core.life = 3;
 	//timeの保持するPropertiesの追加
 	core.time = 0;
 
+	//セーブの設定（nineleapを利用しないならtrue）とゲームID(nineleapの場合はページの末尾の数字)
+	core.nineleap.memory.LocalStrage.DEBUG_MODE = true;
+	enchant.nineleap.memory.LocalStrage.GAME_ID = 'sample001';
+	
+	core.memory.player.preload();
+	
 	
 	//ゲームで使用する画像ファイルを指定する
 	core.preload('betty.png', 'flowers.png');
@@ -122,7 +129,13 @@ window.onload = function(){
 	core.onload = function(){
 		
 		//ゲームのメイン処理
-		
+		//メモリの初期化
+		if(core.memory.player.data.score == null){
+			core.memory.player.data.score = core.score;
+		}
+		if(core.memory.player.data.life == null){
+			core.memory.player.data.life = core.life;
+		}
 		//ここからサウンドについて
 		core.bgm.volume = 0.5;
 		//BGMの再生
@@ -242,7 +255,7 @@ backgroundMap.collisionData = [
 		//ルートシーンの「イベントフレーム」イベントが発生した時に実行するリスナ
 		core.rootScene.addEventListener('enterframe', function(e){
 			if(player.x > 300){
-				core.pushScene(core.field(player.x, player.y));
+				core.pushScene(core.field(player.x, player.y, player.life));
 				player.x = 280;
 			}
 			//trapとの当たり判定
@@ -257,7 +270,10 @@ backgroundMap.collisionData = [
 				if(player.life==0){
 					player.tl.rotateBy(360, 30)
 							 .and().fadeOut(30)
-							 .and().scaleTo(0.2, 30, enchant.Easing.BOUNCE_EASEOUT);
+							 .and().scaleTo(0.2, 30, enchant.Easing.BOUNCE_EASEOUT)
+							 .cue({10: function(){
+							 	core.end();
+							 }});
 					
 				}
 				//デバック用
@@ -270,7 +286,7 @@ backgroundMap.collisionData = [
 
 	};
 	
-	core.field = function(px, py){
+	core.field = function(px, py, pl){
 		//マップの生成
 		var scene = new Scene();
 		var backgroundMap = new Map(16, 16);
@@ -352,6 +368,7 @@ backgroundMap.collisionData = [
 		}
 		
 		var player = new Player(0, py, backgroundMap);
+		player.life = pl;
 		scene.addChild(player);
 		
 		
